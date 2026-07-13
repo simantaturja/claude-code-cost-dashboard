@@ -1,0 +1,1 @@
+{"type":"assistant","timestamp":"2026-07-10T10:15:00Z","cwd":"/acme-api","message":{"id":"sub2","model":"claude-opus-4-8","usage":{"input_tokens":90000,"output_tokens":78000,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"cache_creation":{"ephemeral_5m_input_tokens":0,"ephemeral_1h_input_tokens":0}}}}

@@ -12,8 +12,16 @@ API key, no proxy, no account, no data leaves your machine.
 > value* computed from local usage logs — on a Pro/Max subscription they are not
 > what you are billed.
 
-<!-- Add a screenshot here before release, e.g.:
-![Dashboard overview](docs/screenshot-overview.png) -->
+**Efficiency advisor** — flags likely overspend, per session:
+
+![Efficiency advisor](docs/screenshot-advisor.png)
+
+**Per-prompt cost** — expand any session for a timeline of what each prompt cost,
+including subagent work attributed to the triggering prompt:
+
+![Per-prompt timeline](docs/screenshot-prompts.png)
+
+> Screenshots use the bundled demo dataset (`demo/projects/`), not real data.
 
 ## Why this one
 
@@ -50,6 +58,17 @@ Open <http://localhost:3456>. Refresh to pick up new sessions — only changed f
 are re-parsed.
 
 Override the port with `PORT=4000 npm start`.
+
+### Try it with demo data
+
+No Claude Code history yet, or want to see it populated? Point it at the bundled
+synthetic dataset:
+
+```sh
+CLAUDE_PROJECTS_DIR=./demo/projects npm start
+```
+
+`CLAUDE_PROJECTS_DIR` overrides the default `~/.claude/projects` scan path.
 
 ### Frontend dev mode
 

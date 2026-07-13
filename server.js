@@ -8,7 +8,7 @@ const {
   parseTurns, attributeSubagentTurns,
 } = require('./lib/core');
 
-const PROJECTS_DIR = path.join(os.homedir(), '.claude', 'projects');
+const PROJECTS_DIR = process.env.CLAUDE_PROJECTS_DIR || path.join(os.homedir(), '.claude', 'projects');
 const PORT = process.env.PORT || 3456;
 const DIST_DIR = path.join(__dirname, 'web', 'dist');
 const INDEX_HTML = path.join(DIST_DIR, 'index.html');
