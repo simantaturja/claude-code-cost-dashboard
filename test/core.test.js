@@ -87,6 +87,24 @@ test('parseSession dedups, prices, and counts diagnostics', () => {
   assert.ok(Math.abs(s.daily['2026-07-01'].costUSD - 0.0165) < 1e-9);
 });
 
+test('parseSession dedup keeps the LAST occurrence when duplicates differ (streaming partials)', () => {
+  // External invariant: Claude Code streams the same message.id repeatedly with growing usage
+  // and writes the COMPLETE message last — so last-wins is correct. If this breaks, check
+  // whether the JSONL write order changed before touching parseSession's dedup.
+  const partial = JSON.stringify({
+    type: 'assistant', timestamp: '2026-07-01T10:00:00.000Z',
+    message: { id: 'msg_dup', model: 'claude-opus-4-8', usage: { input_tokens: 100, output_tokens: 4 } },
+  });
+  const complete = JSON.stringify({
+    type: 'assistant', timestamp: '2026-07-01T10:00:00.000Z',
+    message: { id: 'msg_dup', model: 'claude-opus-4-8', usage: { input_tokens: 100, output_tokens: 378 } },
+  });
+  const s = parseSession([partial, complete].join('\n'), { sessionId: 'sess-dup', project: 'p' });
+  assert.strictEqual(s.messages, 1);
+  assert.strictEqual(s.tokens.output, 378); // last-wins: not 4 (partial), not 382 (summed)
+  assert.ok(Math.abs(s.costUSD - (100 * 5 + 378 * 25) / 1e6) < 1e-9, `got ${s.costUSD}`);
+});
+
 test('buildResponse rolls up summary, projects, models, daily', () => {
   const s = parseSession(fixture, { sessionId: 'sess-1', project: 'dir-name' });
   const r = buildResponse([s]);
