@@ -51,6 +51,11 @@ session's project path; no match falls back to `defaultClient`.
   multiple of `subscriptionUSDPerMonth`.
 - **Efficiency advisor** — flags sessions with a low cache-hit ratio, `fable-5`
   used on a short session, or subagent-heavy cost, with estimated savings.
+- **Prompt history** — expand a row on the Sessions tab for a per-prompt timeline
+  (each user prompt with the tokens/cost of the work it triggered, including
+  subagent activity attributed by timestamp window). Prompt text is fetched
+  lazily via `GET /api/session?key=<sessionKey>` and never enters the main
+  `/api/data` payload or the in-memory cache. A project filter narrows the table.
 
 ## Notes
 
