@@ -32,28 +32,53 @@
   .report { font-size:12px; color:var(--muted); margin:0 0 8px; }
   .report select, .report a { font-size:12px; }
   .report a { color:var(--accent); margin-left:6px; }
+  .tabs { display:flex; gap:4px; border-bottom:1px solid var(--border); margin:0 0 8px; }
+  .tab { background:none; border:none; border-bottom:2px solid transparent; margin-bottom:-1px;
+    padding:8px 12px; font:inherit; color:var(--muted); cursor:pointer; }
+  .tab:hover { color:var(--fg); }
+  .tab.active { color:var(--accent); border-bottom-color:var(--accent); }
+  .panel[hidden] { display:none; }
 </style>
 </head>
 <body>
 <main>
   <h1>Claude Code Cost Dashboard</h1>
-  <div class="tiles" id="tiles"></div>
-  <h2>Daily spend — last 90 days</h2>
-  <div class="scroll"><svg id="daily" height="220" style="width:100%"></svg></div>
-  <h2>By client</h2>
-  <p class="report">Monthly report:
-    <select id="reportMonth"></select>
-    <a id="reportLink" href="#">Download</a>
-  </p>
-  <div class="scroll"><table id="clients"></table></div>
-  <h2>By project</h2>
-  <div class="scroll"><table id="projects"></table></div>
-  <h2>By model</h2>
-  <div class="scroll"><table id="models"></table></div>
-  <h2>Efficiency advisor</h2>
-  <div class="scroll"><table id="advisor"></table></div>
-  <h2>Sessions</h2>
-  <div class="scroll"><table id="sessions"></table></div>
+  <nav class="tabs" id="tabs">
+    <button class="tab" data-tab="overview">Overview</button>
+    <button class="tab" data-tab="breakdown">Breakdown</button>
+    <button class="tab" data-tab="advisor">Advisor</button>
+    <button class="tab" data-tab="sessions">Sessions</button>
+  </nav>
+
+  <section class="panel" data-panel="overview">
+    <div class="tiles" id="tiles"></div>
+    <h2>Daily spend — last 90 days</h2>
+    <div class="scroll"><svg id="daily" height="220" style="width:100%"></svg></div>
+    <h2>By client</h2>
+    <p class="report">Monthly report:
+      <select id="reportMonth"></select>
+      <a id="reportLink" href="#">Download</a>
+    </p>
+    <div class="scroll"><table id="clients"></table></div>
+  </section>
+
+  <section class="panel" data-panel="breakdown">
+    <h2>By project</h2>
+    <div class="scroll"><table id="projects"></table></div>
+    <h2>By model</h2>
+    <div class="scroll"><table id="models"></table></div>
+  </section>
+
+  <section class="panel" data-panel="advisor">
+    <h2>Efficiency advisor</h2>
+    <div class="scroll"><table id="advisor"></table></div>
+  </section>
+
+  <section class="panel" data-panel="sessions">
+    <h2>Sessions</h2>
+    <div class="scroll"><table id="sessions"></table></div>
+  </section>
+
   <p class="footnote" id="diag"></p>
 </main>
 <script>
@@ -64,6 +89,17 @@ const fmtTok = n => n >= 1e9 ? (n / 1e9).toFixed(2) + 'B'
 const sumTok = t => t.input + t.output + t.cacheWrite5m + t.cacheWrite1h + t.cacheRead;
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const shortProject = p => p.split('/').filter(Boolean).slice(-2).join('/');
+
+const TABS = ['overview', 'breakdown', 'advisor', 'sessions'];
+function showTab(name) {
+  const tab = TABS.includes(name) ? name : 'overview';
+  document.querySelectorAll('.tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.querySelectorAll('.panel').forEach(p => { p.hidden = p.dataset.panel !== tab; });
+}
+document.querySelectorAll('.tab').forEach(b =>
+  b.addEventListener('click', () => { location.hash = b.dataset.tab; }));
+window.addEventListener('hashchange', () => showTab(location.hash.slice(1)));
+showTab(location.hash.slice(1));
 
 let totalCost = 0;
 
