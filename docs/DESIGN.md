@@ -67,8 +67,8 @@ first place to look.
 
 Daily and monthly totals bucket by the machine's **local** calendar date
 (`localDate` in `lib/core.js`), not UTC. Work done at 1 AM on the 1st counts toward
-the month you were actually working, which matters for the per-client monthly
-billing report.
+the month you were actually working, which matters for the monthly total report and
+the Week/Month views of the spend chart.
 
 ## Aggregation
 
@@ -82,10 +82,10 @@ computes `subagentCostUSD` — the cost contributed by the non-main files — wh
 advisor uses.
 
 `buildResponse(sessions, config)` rolls all sessions up into the API payload:
-summary tiles, `byProject`, `byModel`, `byClient` (with per-month sub-totals),
-`monthly`, `roi`, `advisor`, and the session list. Client attribution maps a
-session's project path to the first client whose configured path prefix matches
-(`clientOf`); no match falls back to `defaultClient`.
+summary tiles, `byProject`, `byModel`, `daily`, `monthly`, `roi`, `advisor`, and
+the session list. The Overview spend chart re-buckets `daily` into day / week /
+month views client-side; `/api/report` renders a total-only monthly summary from
+`monthly`.
 
 ## Efficiency advisor
 

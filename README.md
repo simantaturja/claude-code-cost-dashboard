@@ -5,7 +5,7 @@
 ![node](https://img.shields.io/node/v/cccost-dashboard)
 
 A local, zero-setup dashboard that shows where your [Claude Code](https://claude.com/claude-code)
-tokens and money go — per project, per client, per model, and **per prompt** — with
+tokens and money go — per project, per model, and **per prompt**, over time — with
 an efficiency advisor that flags where you're likely overspending.
 
 It reads the session logs Claude Code already writes to `~/.claude/projects/`. No
@@ -36,10 +36,10 @@ monitors) or team/org platforms that need a proxy or gateway (LiteLLM, Bifrost,
 Mavvrik). This one is aimed at a **solo developer or consultant on a subscription
 plan** and focuses on attribution and advice:
 
-- **Per-client billing** — map project paths to clients, export a monthly markdown
-  invoice table.
 - **Per-prompt cost** — expand any session to see what each individual prompt cost,
   including subagent work attributed to the right turn.
+- **Spend over time** — a Day / Week / Month toggle on the spend chart, plus a
+  monthly total report you can download.
 - **Efficiency advisor** — computed-from-your-own-sessions flags (not generic
   blog advice) for likely waste, with dollar estimates.
 - **Subagent accounting** — subagent and workflow-agent transcripts are merged into
@@ -98,32 +98,23 @@ Run `npm start` in the repo root alongside it — the dev server proxies `/api` 
 
 ## Configuration
 
-Create a `config.json` in the directory you run `cccost-dashboard` from, or at
-`~/.config/cccost-dashboard/config.json` (from a source checkout, `config.example.json` is a
-starting point). Example:
+Optional. Create a `config.json` in the directory you run `cccost-dashboard`
+from, or at `~/.config/cccost-dashboard/config.json`:
 
 ```json
 {
-  "subscriptionUSDPerMonth": 200,
-  "clients": {
-    "Client A": ["/absolute/path/to/clientA/projects"],
-    "Client B": ["/absolute/path/to/clientB/projects"]
-  },
-  "defaultClient": "Personal"
+  "subscriptionUSDPerMonth": 200
 }
 ```
 
-- `clients` — a session is attributed to the **first** client whose path prefix
-  matches the session's project directory. No match → `defaultClient`.
-- `subscriptionUSDPerMonth` — your plan price, used for the ROI figure.
-- Everything is optional; with no `config.json`, all sessions fall to `Personal`
-  and ROI uses a $200 default.
+- `subscriptionUSDPerMonth` — your plan price, used for the plan-ROI figure.
+- With no `config.json`, ROI uses a $200 default.
 
 ## Features
 
 | Tab | Shows |
 |---|---|
-| **Overview** | Total cost, tokens, cache savings, plan-ROI multiple, daily spend chart, per-client table + monthly report download. |
+| **Overview** | Total cost, tokens, cache savings, plan-ROI multiple, a spend chart with a Day/Week/Month toggle, and a monthly total report to download. |
 | **Breakdown** | Cost by project and by model (with cache-read %). |
 | **Advisor** | Sessions flagged for likely overspend (see below). |
 | **Sessions** | Sortable session list; expand a row for a per-prompt timeline and per-model breakdown. Filter by project. |
@@ -165,8 +156,8 @@ The server also exposes JSON/markdown endpoints directly:
 
 | Endpoint | Returns |
 |---|---|
-| `GET /api/data` | Full aggregated payload (summary, byProject, byModel, byClient, monthly, roi, advisor, sessions). Prompt text is **not** included. |
-| `GET /api/report?month=YYYY-MM` | Markdown billing table (cost per client + total). Defaults to the current month. |
+| `GET /api/data` | Full aggregated payload (summary, byProject, byModel, daily, monthly, roi, advisor, sessions). Prompt text is **not** included. |
+| `GET /api/report?month=YYYY-MM` | Markdown monthly total summary (cost + tokens). Defaults to the current month. |
 | `GET /api/session?key=<sessionKey>` | Per-prompt timeline for one session, read from disk on demand. |
 
 ## Privacy
