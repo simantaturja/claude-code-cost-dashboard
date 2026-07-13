@@ -3,7 +3,10 @@ const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
 const os = require('node:os');
-const { parseSession, buildResponse, mergeSessionAggregates, buildReport } = require('./lib/core');
+const {
+  parseSession, buildResponse, mergeSessionAggregates, buildReport,
+  parseTurns, attributeSubagentTurns,
+} = require('./lib/core');
 
 const PROJECTS_DIR = path.join(os.homedir(), '.claude', 'projects');
 const PORT = process.env.PORT || 3456;
@@ -91,7 +94,34 @@ function sessions() {
     if (entry.isMain) group.unshift(entry.aggregate);
     else group.push(entry.aggregate);
   }
-  return [...byKey.values()].map(mergeSessionAggregates);
+  return [...byKey.entries()].map(([key, group]) => {
+    const merged = mergeSessionAggregates(group);
+    merged.key = key; // pass-through link for /api/session (no core rollup change)
+    return merged;
+  });
+}
+
+// Resolve a session's on-disk files by matching the cached sessionKey. The
+// user-supplied key is only ever compared for equality — never joined into a
+// path — so it cannot escape PROJECTS_DIR.
+function sessionFilesFor(key) {
+  let mainPath = null;
+  const subPaths = [];
+  let sessionId = null;
+  let project = null;
+  for (const [filePath, entry] of fileCache) {
+    if (entry.sessionKey !== key) continue;
+    sessionId = entry.aggregate.sessionId;
+    if (entry.isMain) {
+      mainPath = filePath;
+      project = entry.aggregate.project;
+    } else {
+      subPaths.push(filePath);
+      if (project == null) project = entry.aggregate.project;
+    }
+  }
+  if (mainPath === null && subPaths.length === 0) return null;
+  return { mainPath, subPaths, sessionId, project };
 }
 
 const server = http.createServer((req, res) => {
@@ -101,6 +131,31 @@ const server = http.createServer((req, res) => {
     const payload = buildResponse(sessions(), config);
     res.writeHead(200, { 'content-type': 'application/json' });
     res.end(JSON.stringify(payload));
+    return;
+  }
+  if (url.pathname === '/api/session') {
+    refresh();
+    const key = url.searchParams.get('key') || '';
+    const files = sessionFilesFor(key);
+    if (!files) {
+      res.writeHead(404, { 'content-type': 'application/json' });
+      res.end(JSON.stringify({ error: 'unknown session key' }));
+      return;
+    }
+    let turns = [];
+    try {
+      const mainText = files.mainPath ? fs.readFileSync(files.mainPath, 'utf8') : '';
+      turns = parseTurns(mainText);
+      for (const p of files.subPaths) {
+        attributeSubagentTurns(turns, fs.readFileSync(p, 'utf8'));
+      }
+    } catch (err) {
+      res.writeHead(500, { 'content-type': 'application/json' });
+      res.end(JSON.stringify({ error: err.message }));
+      return;
+    }
+    res.writeHead(200, { 'content-type': 'application/json' });
+    res.end(JSON.stringify({ sessionId: files.sessionId, project: files.project, turns }));
     return;
   }
   if (url.pathname === '/api/report') {
