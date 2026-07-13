@@ -3,7 +3,7 @@ const { test } = require('node:test');
 const assert = require('node:assert');
 const {
   parseSession, buildResponse, mergeSessionAggregates, getRates,
-  clientOf, buildReport, DEFAULT_CONFIG,
+  clientOf, buildReport, DEFAULT_CONFIG, parseTurns, attributeSubagentTurns,
 } = require('../lib/core');
 
 const opusLine = JSON.stringify({
@@ -262,4 +262,90 @@ test('advisor sorts by cost desc and caps at 25', () => {
   assert.strictEqual(r.advisor.length, 25);
   assert.strictEqual(r.advisor[0].costUSD, 30);
   assert.strictEqual(r.advisor[24].costUSD, 6);
+});
+
+// ---- parseTurns / attributeSubagentTurns ----
+// opus input rate is $5/1M, so input N*1e6 tokens → cost $5N (easy arithmetic).
+const aLine = (o) => JSON.stringify({
+  type: 'assistant',
+  timestamp: o.ts,
+  message: { id: o.id, model: o.model || 'claude-opus-4-8', usage: { input_tokens: o.input } },
+});
+const uLine = (o) => JSON.stringify({
+  type: 'user',
+  timestamp: o.ts,
+  isMeta: o.isMeta,
+  isSidechain: o.isSidechain,
+  message: { content: o.content },
+});
+
+test('parseTurns: synthetic first turn, prompt filters (command/tool_result/meta), dedup, cost accumulation', () => {
+  const text = [
+    aLine({ ts: '2026-07-01T10:00:00.000Z', id: 'pre', input: 1e6 }), // before first prompt → synthetic turn
+    uLine({ ts: '2026-07-01T10:01:00.000Z', content: 'First real prompt' }),
+    aLine({ ts: '2026-07-01T10:02:00.000Z', id: 'A', input: 2e6 }),
+    aLine({ ts: '2026-07-01T10:02:00.000Z', id: 'A', input: 2e6 }), // dup id → counts once
+    uLine({ ts: '2026-07-01T10:03:00.000Z', content: [{ type: 'tool_result', content: 'ok' }] }), // tool_result-only → skip
+    uLine({ ts: '2026-07-01T10:04:00.000Z', content: '<command-name>/clear</command-name>' }), // command wrapper → skip
+    uLine({ ts: '2026-07-01T10:05:00.000Z', content: 'meta blob', isMeta: true }), // meta → skip
+    uLine({ ts: '2026-07-01T10:05:30.000Z', content: 'sidechain blob', isSidechain: true }), // sidechain → skip
+    aLine({ ts: '2026-07-01T10:06:00.000Z', id: 'A2', input: 1e6 }), // still belongs to first real prompt
+    uLine({ ts: '2026-07-01T10:07:00.000Z', content: [{ type: 'text', text: 'Second prompt' }] }), // text block prompt
+    aLine({ ts: '2026-07-01T10:08:00.000Z', id: 'B', input: 3e6 }),
+  ].join('\n');
+
+  const turns = parseTurns(text);
+  assert.strictEqual(turns.length, 3);
+
+  // synthetic first turn
+  assert.strictEqual(turns[0].flagged, true);
+  assert.strictEqual(turns[0].prompt, '(session continuation)');
+  assert.ok(Math.abs(turns[0].costUSD - 5) < 1e-9); // pre: 1e6 * 5 / 1e6
+
+  // first real prompt: A (2e6, deduped) + A2 (1e6) = 3e6 → $15
+  assert.strictEqual(turns[1].flagged, false);
+  assert.strictEqual(turns[1].prompt, 'First real prompt');
+  assert.strictEqual(turns[1].timestamp, '2026-07-01T10:01:00.000Z');
+  assert.strictEqual(turns[1].tokens.input, 3e6);
+  assert.ok(Math.abs(turns[1].costUSD - 15) < 1e-9);
+  assert.deepStrictEqual(turns[1].models, ['claude-opus-4-8']);
+
+  // second prompt (from text block): B (3e6) → $15
+  assert.strictEqual(turns[2].flagged, false);
+  assert.strictEqual(turns[2].prompt, 'Second prompt');
+  assert.ok(Math.abs(turns[2].costUSD - 15) < 1e-9);
+  assert.strictEqual(turns[2].subagentCostUSD, 0);
+});
+
+test('attributeSubagentTurns: window attribution incl. before-first and after-last boundaries, dedup', () => {
+  const main = [
+    uLine({ ts: '2026-07-01T10:00:00.000Z', content: 'P1' }),
+    aLine({ ts: '2026-07-01T10:01:00.000Z', id: 'm1', input: 1e6 }),
+    uLine({ ts: '2026-07-01T11:00:00.000Z', content: 'P2' }),
+    aLine({ ts: '2026-07-01T11:01:00.000Z', id: 'm2', input: 1e6 }),
+  ].join('\n');
+  const turns = parseTurns(main);
+  assert.strictEqual(turns.length, 2);
+
+  const sub = [
+    aLine({ ts: '2026-07-01T09:00:00.000Z', id: 's0', input: 1e6 }), // before first window → turn 0
+    aLine({ ts: '2026-07-01T10:30:00.000Z', id: 's1', input: 2e6 }), // inside turn 0 window [10:00,11:00)
+    aLine({ ts: '2026-07-01T11:30:00.000Z', id: 's2', input: 3e6 }), // after last turn ts → turn 1
+    aLine({ ts: '2026-07-01T11:30:00.000Z', id: 's2', input: 3e6 }), // dup → once
+    aLine({ ts: '2026-07-01T11:00:00.000Z', id: 's3', input: 1e6, model: 'claude-fable-5' }), // == turn1 ts → turn 1
+  ].join('\n');
+
+  const out = attributeSubagentTurns(turns, sub);
+  assert.strictEqual(out, turns); // mutates + returns
+
+  // turn 0: main m1 (1e6→$5) + sub s0 (1e6→$5) + s1 (2e6→$10) = $20; subagent share $15
+  assert.strictEqual(turns[0].tokens.input, 4e6);
+  assert.ok(Math.abs(turns[0].subagentCostUSD - 15) < 1e-9);
+  assert.ok(Math.abs(turns[0].costUSD - 20) < 1e-9);
+
+  // turn 1: main m2 (1e6→$5) + s2 (3e6→$15) + s3 fable (1e6 input * $10 = $10) = $30; subagent share $25
+  assert.strictEqual(turns[1].tokens.input, 5e6);
+  assert.ok(Math.abs(turns[1].subagentCostUSD - 25) < 1e-9);
+  assert.ok(Math.abs(turns[1].costUSD - 30) < 1e-9);
+  assert.ok(turns[1].models.includes('claude-fable-5'));
 });
