@@ -95,7 +95,7 @@ tuned):
 | Rule | Fires when |
 |---|---|
 | Low cache hit ratio | cost ≥ $1 and cache-read < 50% of input-side tokens |
-| Premium model, short session | used `fable-5` and < 20 messages (est. saving = `fableCost × 0.7`) |
+| Premium model, short session | used a top-tier model (`fable-5` / `mythos-5`) and < 20 messages (est. saving = `premiumCost × 0.7`) |
 | Subagent-heavy | cost ≥ $5 and subagents > 60% of cost |
 
 Only flagged sessions are returned, sorted by cost, capped at 25. It is a "look

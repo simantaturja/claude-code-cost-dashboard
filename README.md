@@ -161,13 +161,13 @@ signal, not a verdict.
 | Rule | Fires when | Meaning |
 |---|---|---|
 | Low cache hit ratio | cost ≥ $1 **and** cache-read < 50% of input-side tokens | Context rebuilt instead of served from cache (reads are ~10× cheaper). |
-| Premium model, short session | used `fable-5` **and** < 20 messages | A short session rarely needs the most expensive model. Est. saving = `fableCost × 0.7`. |
+| Premium model, short session | used a top-tier model (e.g. `fable-5` / `mythos-5`) **and** < 20 messages | A short session rarely needs the most expensive model. Est. saving = `premiumCost × 0.7`. |
 | Subagent-heavy | cost ≥ $5 **and** subagents > 60% of cost | Fan-out overhead — check the delegation earned its cost. |
 
 Only the premium-model rule estimates dollars. Known limits: a low cache ratio is
-often not your fault (5-minute cache TTL, `/clear`, idle gaps); the Sonnet-saving
-estimate assumes the task would have succeeded on Sonnet; the cutoffs will produce
-some false positives.
+often not your fault (5-minute cache TTL, `/clear`, idle gaps); the saving
+estimate assumes the task would have succeeded on a cheaper model; the cutoffs
+will produce some false positives.
 
 ## How costs are computed
 

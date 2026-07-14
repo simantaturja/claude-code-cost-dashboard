@@ -218,6 +218,20 @@ test('buildResponse roi: multiple = monthly value / subscription, ascending', ()
   assert.strictEqual(r2.roi.months[1].multiple, 35 / 100);
 });
 
+test('buildResponse roi: configured flag reflects whether the user set a plan price', () => {
+  const sessions = [acme1, acme2, globex, personal];
+  // no config → $200 default, flagged as NOT user-configured
+  const rDefault = buildResponse(sessions);
+  assert.strictEqual(rDefault.roi.subscriptionUSDPerMonth, 200);
+  assert.strictEqual(rDefault.roi.configured, false);
+  // config object without the key → still a default, not configured
+  assert.strictEqual(buildResponse(sessions, {}).roi.configured, false);
+  // explicit plan price → configured; the Pro ($20) case that was silently 10x off
+  const rSet = buildResponse(sessions, { subscriptionUSDPerMonth: 20 });
+  assert.strictEqual(rSet.roi.configured, true);
+  assert.strictEqual(rSet.roi.months[1].multiple, 35 / 20);
+});
+
 test('mergeSessionAggregates sums subagentCostUSD from non-main files', () => {
   const main = Object.assign(parseSession(opusLine, { sessionId: 'sess-1', project: 'p' }), { isMain: true });
   const sub1 = Object.assign(parseSession(fableLine, { sessionId: 'sess-1', project: 'p' }), { isMain: false });
@@ -255,14 +269,23 @@ test('advisor rule 1: low cache ratio fires below 0.5, not at threshold', () => 
   assert.ok(!a['r1-cost']);
 });
 
-test('advisor rule 2: fable-5 on short session, est saving = fableCost * 0.7', () => {
-  const models = { 'claude-fable-5': { costUSD: 5, messages: 5, tokens: emptyTok() } };
-  const fire = fakeSession({ sessionId: 'r2-fire', costUSD: 5, messages: 10, models });
-  const nofire = fakeSession({ sessionId: 'r2-long', costUSD: 5, messages: 20, models });
-  const a = advisorById(buildResponse([fire, nofire]));
-  assert.deepStrictEqual(a['r2-fire'].reasons, ['fable-5 on a short session — sonnet likely sufficient (est. save $3.50)']);
-  assert.ok(Math.abs(a['r2-fire'].estSavingUSD - 3.5) < 1e-9);
+test('advisor rule 2: any top-tier model on a short session flags; est saving = premiumCost * 0.7', () => {
+  const MSG = 'Premium model on a short session — a cheaper model likely sufficient (est. save $3.50)';
+  const fableModels = { 'claude-fable-5': { costUSD: 5, messages: 5, tokens: emptyTok() } };
+  const mythosModels = { 'claude-mythos-5': { costUSD: 5, messages: 5, tokens: emptyTok() } };
+  const opusModels = { 'claude-opus-4-8': { costUSD: 5, messages: 5, tokens: emptyTok() } };
+  const fable = fakeSession({ sessionId: 'r2-fable', costUSD: 5, messages: 10, models: fableModels });
+  const mythos = fakeSession({ sessionId: 'r2-mythos', costUSD: 5, messages: 10, models: mythosModels });
+  const long = fakeSession({ sessionId: 'r2-long', costUSD: 5, messages: 20, models: fableModels });
+  const opus = fakeSession({ sessionId: 'r2-opus', costUSD: 5, messages: 10, models: opusModels });
+  const a = advisorById(buildResponse([fable, mythos, long, opus]));
+  // both top-tier models (fable-5 and mythos-5 share the max input rate) fire
+  assert.deepStrictEqual(a['r2-fable'].reasons, [MSG]);
+  assert.deepStrictEqual(a['r2-mythos'].reasons, [MSG]);
+  assert.ok(Math.abs(a['r2-fable'].estSavingUSD - 3.5) < 1e-9);
+  // a longer session doesn't fire; a cheaper tier (opus) doesn't fire this rule
   assert.ok(!a['r2-long']);
+  assert.ok(!a['r2-opus']);
 });
 
 test('advisor rule 3: subagent-heavy fires above 0.6 and cost >= 5, not at threshold', () => {
