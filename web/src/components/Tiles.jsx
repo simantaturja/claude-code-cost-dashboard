@@ -37,6 +37,7 @@ export default function Tiles({ summary, roi }) {
             <div className="meter-head">
               <span className="meter-title">
                 {monthName(last.month)} value vs ${roi.subscriptionUSDPerMonth}/mo plan
+                {!roi.configured && ' (default)'}
               </span>
               <span className="meter-read">
                 {last.multiple.toFixed(1)}
@@ -65,6 +66,8 @@ export default function Tiles({ summary, roi }) {
             </div>
             <div className="meter-note">
               {monthName(last.month)} returned {fmtUSD(last.valueUSD)} of API-equivalent value.
+              {!roi.configured &&
+                ` Multiple assumes a $${roi.subscriptionUSDPerMonth}/mo plan — set subscriptionUSDPerMonth in config.json to match yours.`}
             </div>
           </div>
         )}
