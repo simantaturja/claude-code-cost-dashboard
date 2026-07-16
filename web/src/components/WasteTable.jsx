@@ -4,12 +4,19 @@ import { shortProject } from '../format.js';
 // means and why the counts matter before reading any number.
 function Intro() {
   return (
-    <p className="waste-intro">
-      Tool calls that <strong>failed and were retried</strong>, and files{' '}
-      <strong>re-read when the answer was already in context</strong> — quota you
-      paid for but didn&apos;t need. Shown as counts, not dollars: token usage is
-      logged per message, not per tool call.
-    </p>
+    <>
+      <p className="waste-intro">
+        Tool calls that <strong>failed and were retried</strong>, and files{' '}
+        <strong>re-read when the answer was already in context</strong> — quota you
+        paid for but didn&apos;t need. Shown as counts, not dollars: token usage is
+        logged per message, not per tool call.
+      </p>
+      <p className="waste-method">
+        How it&apos;s measured: an errored tool call is a tool result the log marks
+        as an error; a redundant read is the same file read again with no edit in
+        between (re-reading after an edit is expected, so it isn&apos;t counted).
+      </p>
+    </>
   );
 }
 

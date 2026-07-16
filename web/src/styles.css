@@ -125,8 +125,17 @@ body {
   color: var(--muted);
   font-size: 13px;
   line-height: 1.6;
-  margin: 4px 0 12px;
+  margin: 4px 0 8px;
   max-width: 60ch;
+}
+
+.waste-method {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+  margin: 0 0 12px;
+  max-width: 60ch;
+  opacity: 0.85;
 }
 
 .waste-summary {
