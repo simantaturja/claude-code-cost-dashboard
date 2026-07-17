@@ -128,14 +128,19 @@ export default function DailyChart({ daily }) {
   }
 
   return (
-    <div className="chart-wrap" ref={wrapRef}>
-      <div className="chart-head">
-        <span className="chart-range">Spend — {range}</span>
-        <div className="seg" role="group" aria-label="Chart granularity">
+    <div className="chart relative rounded-panel border border-line bg-surface px-[18px] pb-2 pt-4 shadow-panel" ref={wrapRef}>
+      <div className="mb-2 flex items-center justify-between gap-3">
+        <span className="text-xs text-muted">Spend — {range}</span>
+        <div className="inline-flex overflow-hidden rounded-[7px] border border-line" role="group" aria-label="Chart granularity">
           {MODES.map((m) => (
             <button
               key={m.id}
-              className={'seg-btn' + (m.id === mode ? ' is-active' : '')}
+              className={
+                'cursor-pointer border-l border-line px-[13px] py-[5px] text-xs transition-colors first:border-l-0 focus-visible:-outline-offset-2 focus-visible:outline-2 focus-visible:outline-accent ' +
+                (m.id === mode
+                  ? 'bg-chart font-semibold text-white'
+                  : 'bg-transparent text-muted hover:text-ink')
+              }
               aria-pressed={m.id === mode}
               onClick={() => { setMode(m.id); setHover(null); }}
             >
@@ -186,8 +191,11 @@ export default function DailyChart({ daily }) {
         </svg>
       )}
       {hover && (
-        <div className="tooltip" style={{ left: hover.x, top: hover.y }}>
-          <div className="t-date">{hover.d.tip}</div>
+        <div
+          className="pointer-events-none absolute z-[5] -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-[7px] bg-ink px-2.5 py-[7px] font-mono text-[11px] leading-[1.4] text-page shadow-raised"
+          style={{ left: hover.x, top: hover.y }}
+        >
+          <div className="text-faint">{hover.d.tip}</div>
           <div>
             {fmtUSD(hover.d.costUSD)} · {fmtTok(hover.d.tokens)} tok
           </div>

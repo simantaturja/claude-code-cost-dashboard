@@ -28,8 +28,16 @@ export default function AdvisorTable({ rows }) {
               <td style={{ whiteSpace: 'normal' }}>
                 {a.reasons.map((r, i) => (
                   <div key={i}>
-                    <div><span className="advisor-rule" title="Rule that triggered this advice">{r.rule}</span> {r.text}</div>
-                    <div className="advisor-action">{r.action}</div>
+                    <div>
+                      <span
+                        className="mr-1 inline-block rounded-[3px] border border-line bg-surface-2 px-[5px] py-px font-mono text-[10px] font-semibold uppercase leading-[1.4] tracking-[0.02em] text-muted"
+                        title="Rule that triggered this advice"
+                      >
+                        {r.rule}
+                      </span>{' '}
+                      {r.text}
+                    </div>
+                    <div className="mt-0.5 text-xs text-muted">{r.action}</div>
                   </div>
                 ))}
               </td>

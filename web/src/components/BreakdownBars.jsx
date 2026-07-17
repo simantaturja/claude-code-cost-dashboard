@@ -32,21 +32,34 @@ export default function BreakdownBars({ rows, totalCost, topN = 8 }) {
   const max = Math.max(...bars.map((b) => b.costUSD), 0.01);
 
   return (
-    <div className="viz-panel">
-      <div className="hbars">
+    <div className="mb-3.5 rounded-panel border border-line bg-surface px-5 py-[18px] shadow-panel">
+      <div className="grid gap-[11px]">
         {bars.map((b) => (
           <div
-            className={'hbar' + (b.muted ? ' is-muted' : '')}
+            className="grid grid-cols-[minmax(96px,190px)_1fr_minmax(112px,auto)] items-center gap-3.5"
             key={b.key}
             title={`${b.full}\n${fmtUSD(b.costUSD)} · ${fmtTok(b.tokens)} tokens · ${b.sessions} session${b.sessions === 1 ? '' : 's'}`}
           >
-            <span className="hbar-label">{b.label}</span>
-            <div className="hbar-track">
-              <div className="hbar-fill" style={{ width: (b.costUSD / max) * 100 + '%' }} />
+            <span
+              className={
+                'overflow-hidden text-ellipsis whitespace-nowrap text-[12.5px] ' +
+                (b.muted ? 'text-muted' : 'text-ink')
+              }
+            >
+              {b.label}
+            </span>
+            <div className="h-[11px] overflow-hidden rounded-[4px] bg-surface-2">
+              <div
+                className={
+                  'h-full min-w-[3px] rounded-r-[4px] transition-[width] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ' +
+                  (b.muted ? 'bg-cat-other' : 'bg-chart')
+                }
+                style={{ width: (b.costUSD / max) * 100 + '%' }}
+              />
             </div>
-            <span className="hbar-val">
+            <span className="whitespace-nowrap text-right font-mono text-[12.5px] font-medium text-ink tabular-nums">
               {fmtUSD(b.costUSD)}
-              <span className="hbar-share">{pct(b.costUSD, totalCost)}</span>
+              <span className="ml-2 font-normal text-faint">{pct(b.costUSD, totalCost)}</span>
             </span>
           </div>
         ))}

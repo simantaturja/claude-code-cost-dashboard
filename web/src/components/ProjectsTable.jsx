@@ -20,7 +20,7 @@ export default function ProjectsTable({ rows, totalCost }) {
               <td className="num">{p.sessionCount}</td>
               <td className="num">{fmtTok(p.tokens)}</td>
               <td className="num">{fmtUSD(p.costUSD)}</td>
-              <td className="num share-cell">{pct(p.costUSD, totalCost)}</td>
+              <td className="num text-muted">{pct(p.costUSD, totalCost)}</td>
             </tr>
           ))}
         </tbody>

@@ -9,10 +9,17 @@ export default function ReportControl({ monthly }) {
 
   const href = api.reportHref(month);
 
+  const linkCls =
+    'border-b border-transparent text-[12.5px] font-semibold text-accent no-underline hover:border-accent';
+
   return (
-    <p className="report">
+    <p className="mb-3 flex items-center gap-2.5 text-[12.5px] text-muted">
       Monthly report:
-      <select value={month} onChange={(e) => setMonth(e.target.value)}>
+      <select
+        className="rounded-md border border-line bg-surface px-2 py-[5px] font-mono text-[12.5px] font-medium text-ink"
+        value={month}
+        onChange={(e) => setMonth(e.target.value)}
+      >
         {months.map((m) => (
           <option key={m} value={m}>
             {m}
@@ -20,9 +27,10 @@ export default function ReportControl({ monthly }) {
         ))}
       </select>
       {href ? (
-        <a href={href}>Download</a>
+        <a className={linkCls} href={href}>Download</a>
       ) : (
         <a
+          className={linkCls}
           href="#"
           onClick={(e) => {
             e.preventDefault();

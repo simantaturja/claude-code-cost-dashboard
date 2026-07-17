@@ -18,16 +18,18 @@ const REASON_LABELS = {
 
 // A one-liner shown in both states so a first-time viewer knows what "waste"
 // means and why the counts matter before reading any number.
+const METHOD_CLS = 'mb-3 max-w-[60ch] text-xs leading-[1.6] text-muted opacity-85';
+
 function Intro() {
   return (
     <>
-      <p className="waste-intro">
+      <p className="mb-2 mt-1 max-w-[60ch] text-[13px] leading-[1.6] text-muted">
         Tool calls that <strong>failed and were retried</strong>, and files{' '}
         <strong>re-read when the answer was already in context</strong> — quota you
         paid for but didn&apos;t need. Shown as counts, not dollars: token usage is
         logged per message, not per tool call.
       </p>
-      <p className="waste-method">
+      <p className={METHOD_CLS}>
         How it&apos;s measured: an errored tool call is a tool result the log marks
         as an error, counted only when the same tool is called again afterward
         (a retry); a redundant read is the same file read whole again with no
@@ -53,7 +55,7 @@ export default function WasteTable({ rows }) {
   return (
     <>
       <Intro />
-      <p className="waste-summary">
+      <p className="mb-3 mt-1 text-[13px] leading-normal text-muted">
         {rows.erroredToolCalls.toLocaleString('en-US')} errored tool calls ·{' '}
         {rows.redundantReads.toLocaleString('en-US')} redundant file reads across{' '}
         {rows.duplicateFileCount.toLocaleString('en-US')} file
@@ -113,7 +115,7 @@ export default function WasteTable({ rows }) {
       {rows.errorSamples && rows.errorSamples.length > 0 && (
         <>
           <h2 className="section-label">What the errors were</h2>
-          <p className="waste-method">
+          <p className={METHOD_CLS}>
             A few concrete examples per failure kind — the command or file that
             failed and the message it returned. Recognizable credentials (keyed
             flags, tokens, auth headers) are redacted — review before sharing.

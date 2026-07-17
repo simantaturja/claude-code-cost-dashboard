@@ -49,22 +49,25 @@ export default function App() {
 
   return (
     <>
-      <header className="topbar">
-        <div className="topbar-in">
-          <h1 className="brand">
-            <span className="brand-mark" aria-hidden="true" />
+      <header className="sticky top-0 z-20 border-b border-line bg-[color-mix(in_srgb,var(--c-page)_86%,transparent)] backdrop-blur-[10px]">
+        <div className="mx-auto flex min-h-[54px] max-w-[1160px] flex-wrap items-center gap-[26px] px-[22px]">
+          <h1 className="flex items-center gap-2.5 whitespace-nowrap font-mono text-[13px] font-semibold tracking-[0.01em]">
+            <span
+              className="relative h-3.5 w-3.5 flex-none rounded-[3px] border-[1.5px] border-chart after:absolute after:inset-x-[3px] after:bottom-[3px] after:h-1 after:rounded-[1px] after:bg-chart after:content-['']"
+              aria-hidden="true"
+            />
             Claude Code Cost Dashboard
           </h1>
           <TabNav tabs={TABS} active={tab} />
           {data && (
-            <span className="stamp">
+            <span className="ml-auto font-mono text-[11px] leading-[1.4] tracking-[0.02em] text-faint">
               generated {new Date(data.generatedAt).toLocaleString()}
             </span>
           )}
         </div>
       </header>
 
-      <div className="app">
+      <div className="mx-auto max-w-[1160px] px-[22px] pb-[84px] pt-[30px]">
       {error && <div className="empty">Could not load data: {error}</div>}
       {!error && !data && <div className="empty">Loading usage data…</div>}
 

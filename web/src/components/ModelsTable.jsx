@@ -22,7 +22,7 @@ export default function ModelsTable({ rows, totalCost }) {
               <td className="num">{fmtTok(m.tokens)}</td>
               <td className="num">{pct(m.cacheRead, m.tokens)}</td>
               <td className="num">{fmtUSD(m.costUSD)}</td>
-              <td className="num share-cell">{pct(m.costUSD, totalCost)}</td>
+              <td className="num text-muted">{pct(m.costUSD, totalCost)}</td>
             </tr>
           ))}
         </tbody>

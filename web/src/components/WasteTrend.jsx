@@ -38,11 +38,12 @@ export default function WasteTrend({ trend }) {
   const labelStep = Math.max(1, Math.ceil(rows.length / 10));
 
   return (
-    <div className="chart-wrap">
-      <div className="chart-head">
-        <span className="chart-range">Waste trend — last {DAYS} days</span>
-        <span className="chart-legend">
-          <span className="dot dot-error" /> errored calls <span className="dot dot-redundant" /> redundant reads
+    <div className="chart relative rounded-panel border border-line bg-surface px-[18px] pb-2 pt-4 shadow-panel">
+      <div className="mb-2 flex items-center justify-between gap-3">
+        <span className="text-xs text-muted">Waste trend — last {DAYS} days</span>
+        <span className="inline-flex items-center gap-[5px] text-xs text-muted">
+          <span className="inline-block h-2 w-2 rounded-full bg-danger" /> errored calls{' '}
+          <span className="ml-2.5 inline-block h-2 w-2 rounded-full bg-chart" /> redundant reads
         </span>
       </div>
       <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Waste trend, last ${DAYS} days`}>

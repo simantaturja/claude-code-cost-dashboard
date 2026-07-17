@@ -14,26 +14,35 @@ function Turn({ t }) {
   const long = t.prompt.length > TRUNCATE;
   const text = full || !long ? t.prompt : t.prompt.slice(0, TRUNCATE) + '…';
   return (
-    <li className={'turn' + (t.flagged ? ' is-flagged' : '')}>
-      <div className="turn-head">
-        <span className="turn-time mono">{fmtTurnTime(t.timestamp)}</span>
-        {t.flagged && <span className="turn-tag">continuation</span>}
-        <span className="turn-cost mono">{fmtUSD(t.costUSD)}</span>
+    <li className={'border-t border-line pb-[11px] pt-2.5 first:border-t-0' + (t.flagged ? ' opacity-80' : '')}>
+      <div className="mb-1 flex items-baseline gap-2.5">
+        <span className="font-mono text-[11.5px] tracking-[0.02em] text-faint">{fmtTurnTime(t.timestamp)}</span>
+        {t.flagged && (
+          <span className="rounded-[4px] bg-soft px-1.5 py-[3px] font-mono text-[9.5px] font-semibold uppercase leading-none tracking-[0.06em] text-accent">
+            continuation
+          </span>
+        )}
+        <span className="ml-auto font-mono text-[12.5px] font-medium text-ink">{fmtUSD(t.costUSD)}</span>
       </div>
       <div
-        className={'turn-prompt' + (long ? ' is-clickable' : '')}
+        className={
+          'whitespace-pre-wrap break-words text-[12.5px] text-ink' +
+          (long ? ' cursor-pointer hover:text-accent' : '')
+        }
         onClick={long ? () => setFull((v) => !v) : undefined}
         title={long ? (full ? 'Click to collapse' : 'Click to expand') : undefined}
       >
         {text}
       </div>
-      <div className="turn-meta">
+      <div className="mt-[5px] flex flex-wrap gap-x-3.5 gap-y-1 text-[11.5px] text-muted tabular-nums">
         <span>in {fmtTok(t.tokens.input)}</span>
         <span>out {fmtTok(t.tokens.output)}</span>
         {t.subagentCostUSD > 0 && (
-          <span className="turn-sub">subagent {fmtUSD(t.subagentCostUSD)}</span>
+          <span className="text-accent">subagent {fmtUSD(t.subagentCostUSD)}</span>
         )}
-        {t.models.length > 0 && <span className="turn-models mono">{t.models.join(', ')}</span>}
+        {t.models.length > 0 && (
+          <span className="font-mono text-[11px] text-faint">{t.models.join(', ')}</span>
+        )}
       </div>
     </li>
   );
@@ -54,13 +63,14 @@ function PromptTimeline({ sessionKey }) {
     };
   }, [sessionKey]);
 
-  if (state.status === 'loading') return <div className="turn-note">Loading prompts…</div>;
+  const noteCls = 'py-3 text-[12.5px] text-muted';
+  if (state.status === 'loading') return <div className={noteCls}>Loading prompts…</div>;
   if (state.status === 'error') {
-    return <div className="turn-note">Could not load prompts: {state.error}</div>;
+    return <div className={noteCls}>Could not load prompts: {state.error}</div>;
   }
-  if (!state.turns.length) return <div className="turn-note">No prompts recorded.</div>;
+  if (!state.turns.length) return <div className={noteCls}>No prompts recorded.</div>;
   return (
-    <ol className="timeline">
+    <ol className="m-0 list-none p-0">
       {state.turns.map((t, i) => (
         <Turn key={i} t={t} />
       ))}
@@ -72,8 +82,8 @@ function SessionDetail({ s }) {
   const models = Object.entries(s.models).sort((a, b) => b[1].costUSD - a[1].costUSD);
   return (
     <div className="detail-inner">
-      <div className="detail-head">
-        <b>{s.project}</b> · session {s.sessionId}
+      <div className="mb-2.5 text-[12.5px] text-muted">
+        <b className="font-semibold text-ink">{s.project}</b> · session {s.sessionId}
       </div>
       <table>
         <thead>
@@ -101,11 +111,13 @@ function SessionDetail({ s }) {
           ))}
         </tbody>
       </table>
-      <div className="timeline-label">Prompt history</div>
+      <div className="mb-2 mt-[18px] font-mono text-[11px] font-semibold uppercase leading-none tracking-[0.07em] text-faint">
+        Prompt history
+      </div>
       {s.key ? (
         <PromptTimeline sessionKey={s.key} />
       ) : (
-        <div className="turn-note">No prompt history available.</div>
+        <div className="py-3 text-[12.5px] text-muted">No prompt history available.</div>
       )}
     </div>
   );
@@ -142,9 +154,10 @@ export default function SessionsTable({ sessions }) {
 
   return (
     <>
-      <div className="report">
+      <div className="mb-3 flex items-center gap-2.5 text-[12.5px] text-muted">
         <label htmlFor="project-filter">Project</label>
         <select
+          className="rounded-md border border-line bg-surface px-2 py-[5px] font-mono text-[12.5px] font-medium text-ink"
           id="project-filter"
           value={project}
           onChange={(e) => {
