@@ -22,14 +22,15 @@ export default function Tiles({ summary, roi }) {
 
   return (
     <>
-      <section className="statement">
-        <div className="statement-main">
+      <section className="meter">
+        <div className="meter-main">
           <div className="eyebrow">API-equivalent value delivered</div>
-          <div className="statement-figure">
+          <div className="meter-figure">
             <span className="cur">$</span>
             <span className="amt">{heroCost}</span>
           </div>
-          <p className="statement-sub">
+          <div className="graticule" aria-hidden="true" />
+          <p className="meter-sub">
             Everything Claude Code did for you, priced at current Anthropic API rates.
           </p>
         </div>
@@ -67,9 +68,9 @@ export default function Tiles({ summary, roi }) {
         )}
       </section>
 
-      <div className="tiles">
+      <div className="readouts">
         {tiles.map(([v, l, gain]) => (
-          <div className={'tile' + (gain ? ' is-gain' : '')} key={l}>
+          <div className={'readout' + (gain ? ' is-gain' : '')} key={l}>
             <div className="v">{v}</div>
             <div className="l">{l}</div>
           </div>

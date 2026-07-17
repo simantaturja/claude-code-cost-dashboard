@@ -48,21 +48,23 @@ export default function App() {
   }, []);
 
   return (
-    <div className="app">
-      <header className="masthead">
-        <h1>
-          <span className="mark" aria-hidden="true" />
-          Claude Code Cost Dashboard
-        </h1>
-        {data && (
-          <span className="stamp">
-            generated {new Date(data.generatedAt).toLocaleString()}
-          </span>
-        )}
+    <>
+      <header className="topbar">
+        <div className="topbar-in">
+          <h1 className="brand">
+            <span className="brand-mark" aria-hidden="true" />
+            Claude Code Cost Dashboard
+          </h1>
+          <TabNav tabs={TABS} active={tab} />
+          {data && (
+            <span className="stamp">
+              generated {new Date(data.generatedAt).toLocaleString()}
+            </span>
+          )}
+        </div>
       </header>
 
-      <TabNav tabs={TABS} active={tab} />
-
+      <div className="app">
       {error && <div className="empty">Could not load data: {error}</div>}
       {!error && !data && <div className="empty">Loading usage data…</div>}
 
@@ -122,6 +124,7 @@ export default function App() {
           <Diagnostics summary={data.summary} generatedAt={data.generatedAt} />
         </>
       )}
-    </div>
+      </div>
+    </>
   );
 }

@@ -1,8 +1,9 @@
 import { fmtUSD, pct } from '../format.js';
 
 // Where spend splits across models, as one 100%-stacked share bar + legend.
-// Monochrome ordinal ramp (validated light+dark via the dataviz script) — biggest
-// share = most ink; 2px surface gaps keep segments distinct. Top 3 + "Other".
+// Models are identity, so segments use fixed categorical slots (validated
+// light+dark via the dataviz script); "Other" stays neutral gray. 2px surface
+// gaps keep segments distinct. Top 3 + "Other".
 const shortModel = (m) => m.replace(/^claude-/, '').replace(/-\d{8}$/, '');
 
 export default function ModelSplit({ rows, totalCost }) {
