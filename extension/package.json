@@ -2,7 +2,7 @@
   "name": "cccost-dashboard-vscode",
   "displayName": "cccost — Cost Dashboard for Claude Code",
   "description": "Unofficial. Local, zero-setup cost dashboard for Claude Code — per project, model, and prompt, with an efficiency advisor. Reads ~/.claude/projects/ logs. Not affiliated with Anthropic. Desktop only.",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "publisher": "turja",
   "icon": "icon.png",
   "galleryBanner": {
