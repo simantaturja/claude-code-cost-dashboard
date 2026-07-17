@@ -4,6 +4,24 @@ All notable changes to this project are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.0.0/); versioning follows
 [SemVer](https://semver.org/).
 
+## [2.1.0] - 2026-07-17
+
+### Changed
+- Visual redesign — "The Statement" direction. The Overview now leads with the
+  ROI multiple as the headline: a gold API-equivalent-value figure beside a
+  value-bar showing return on your plan against a break-even marker. Deeper
+  surfaces, layered shadows, and a warm statement palette (gold reserved for
+  value, emerald for money saved) replace the flat single-accent look. Light
+  and dark are both hand-tuned.
+
+### Added
+- Breakdown charts — the tab now leads with visuals before the detail tables:
+  a horizontal "by project" bar chart (top spenders + a rolled-up "Other") and
+  a 100%-stacked "by model" share bar with legend. Both have hover detail; the
+  model ramp is validated for colorblind-safe contrast in light and dark.
+- Plain-language helper line under every section explaining what it shows and
+  how to use it.
+
 ## [2.0.2] - 2026-07-17
 
 ### Security
@@ -81,6 +99,7 @@ Initial public release.
 - Daily chart bucketing switched from UTC to local calendar date, with
   calendar-gap filling.
 
+[2.1.0]: https://github.com/simantaturja/cccost-dashboard/compare/v2.0.2...v2.1.0
 [2.0.2]: https://github.com/simantaturja/cccost-dashboard/compare/v2.0.0...v2.0.2
 [2.0.0]: https://github.com/simantaturja/cccost-dashboard/compare/v1.1.0...v2.0.0
 [1.1.0]: https://github.com/simantaturja/cccost-dashboard/compare/v1.0.0...v1.1.0

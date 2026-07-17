@@ -14,68 +14,62 @@ export default function Tiles({ summary, roi }) {
   const breakEvenPct = Math.min(100, (1 / ceiling) * 100);
 
   const tiles = [
-    [fmtTok(summary.totalTokens), 'Total tokens'],
-    [String(summary.sessionCount), `Sessions across ${summary.projectCount} projects`],
-    [fmtUSD(summary.cacheSavingsUSD), 'Saved by prompt cache'],
-    [(readShare * 100).toFixed(1) + '%', 'Tokens served from cache'],
+    [fmtTok(summary.totalTokens), 'Total tokens', false],
+    [String(summary.sessionCount), `Sessions across ${summary.projectCount} projects`, false],
+    [fmtUSD(summary.cacheSavingsUSD), 'Saved by prompt cache', true],
+    [(readShare * 100).toFixed(1) + '%', 'Tokens served from cache', false],
   ];
 
   return (
     <>
-      <section className="hero">
-        <div className="hero-figure">
-          <div className="eyebrow">Total API-equivalent value</div>
-          <div className="value">
-            <span className="unit">$</span>
-            {heroCost}
+      <section className="statement">
+        <div className="statement-main">
+          <div className="eyebrow">API-equivalent value delivered</div>
+          <div className="statement-figure">
+            <span className="cur">$</span>
+            <span className="amt">{heroCost}</span>
           </div>
-          <div className="sub">Usage priced at current Anthropic API rates</div>
+          <p className="statement-sub">
+            Everything Claude Code did for you, priced at current Anthropic API rates.
+          </p>
         </div>
 
         {last && (
-          <div className="meter">
-            <div className="meter-head">
-              <span className="meter-title">
-                {monthName(last.month)} value vs ${roi.subscriptionUSDPerMonth}/mo plan
-                {!roi.configured && ' (default)'}
-              </span>
-              <span className="meter-read">
+          <div className="roi">
+            <div className="roi-head">
+              <span className="roi-mult">
                 {last.multiple.toFixed(1)}
                 <span className="x">×</span>
               </span>
+              <span className="roi-title">
+                return on your <b>${roi.subscriptionUSDPerMonth}/mo</b> plan
+                {!roi.configured && ' (default)'}
+              </span>
             </div>
-            <div className="track">
+            <div className="value-bar">
               <div className="fill" style={{ width: fillPct + '%' }} />
-              <div
-                className="break-even"
-                style={{
-                  position: 'absolute',
-                  left: breakEvenPct + '%',
-                  top: 0,
-                  bottom: 0,
-                  width: '2px',
-                  background: 'var(--surface)',
-                }}
-                title="Break-even (1×)"
-              />
+              <div className="breakeven" style={{ left: breakEvenPct + '%' }} title="Break-even (1×)" />
             </div>
-            <div className="ticks">
+            <div className="value-ticks">
               <span>0×</span>
-              <span>break-even 1×</span>
+              <span className="be">break-even 1×</span>
               <span>{ceiling.toFixed(1)}×</span>
             </div>
-            <div className="meter-note">
-              {monthName(last.month)} returned {fmtUSD(last.valueUSD)} of API-equivalent value.
-              {!roi.configured &&
-                ` Multiple assumes a $${roi.subscriptionUSDPerMonth}/mo plan — set subscriptionUSDPerMonth in config.json to match yours.`}
-            </div>
+            <p className="roi-note">
+              {monthName(last.month)} returned <b>{fmtUSD(last.valueUSD)}</b> of value — {last.multiple.toFixed(1)}× what you paid.
+              {!roi.configured && (
+                <span className="cfg">
+                  Multiple assumes a ${roi.subscriptionUSDPerMonth}/mo plan — set subscriptionUSDPerMonth in config.json to match yours.
+                </span>
+              )}
+            </p>
           </div>
         )}
       </section>
 
       <div className="tiles">
-        {tiles.map(([v, l]) => (
-          <div className="tile" key={l}>
+        {tiles.map(([v, l, gain]) => (
+          <div className={'tile' + (gain ? ' is-gain' : '')} key={l}>
             <div className="v">{v}</div>
             <div className="l">{l}</div>
           </div>
