@@ -147,6 +147,8 @@ export default function SessionsTable({ sessions }) {
     });
   }, [sessions, sort, project]);
 
+  const maxRowCost = useMemo(() => Math.max(...rows.map((s) => s.costUSD), 0.01), [rows]);
+
   function toggleSort(key) {
     setSort((s) => ({ key, dir: s.key === key ? -s.dir : -1 }));
     setOpen(null);
@@ -204,7 +206,20 @@ export default function SessionsTable({ sessions }) {
                     <td className="num">{(s.lastTimestamp || '').slice(0, 10)}</td>
                     <td className="num">{s.messages}</td>
                     <td className="num">{fmtTok(sumTok(s.tokens))}</td>
-                    <td className="num">{fmtUSD(s.costUSD)}</td>
+                    <td className="num">
+                      <div className="flex items-center justify-end gap-2">
+                        <div
+                          className="h-[7px] w-14 shrink-0 overflow-hidden rounded-[3px] bg-surface-2"
+                          aria-hidden="true"
+                        >
+                          <div
+                            className="h-full min-w-[2px] rounded-[3px] bg-chart"
+                            style={{ width: (s.costUSD / maxRowCost) * 100 + '%' }}
+                          />
+                        </div>
+                        {fmtUSD(s.costUSD)}
+                      </div>
+                    </td>
                   </tr>
                   {isOpen && (
                     <tr className="detail">
