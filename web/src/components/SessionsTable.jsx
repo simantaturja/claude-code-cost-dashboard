@@ -9,10 +9,13 @@ function fmtTurnTime(ts) {
   return ts.slice(0, 10) + ' ' + ts.slice(11, 16);
 }
 
-function Turn({ t }) {
+function Turn({ t, maxCost }) {
   const [full, setFull] = useState(false);
   const long = t.prompt.length > TRUNCATE;
   const text = full || !long ? t.prompt : t.prompt.slice(0, TRUNCATE) + '…';
+  const mainCost = Math.max(t.costUSD - t.subagentCostUSD, 0);
+  const mainPct = Math.min(100, (mainCost / maxCost) * 100);
+  const subPct = Math.max(0, Math.min(100 - mainPct, (t.subagentCostUSD / maxCost) * 100));
   return (
     <li className={'border-t border-line pb-[11px] pt-2.5 first:border-t-0' + (t.flagged ? ' opacity-80' : '')}>
       <div className="mb-1 flex items-baseline gap-2.5">
@@ -23,6 +26,18 @@ function Turn({ t }) {
           </span>
         )}
         <span className="ml-auto font-mono text-[12.5px] font-medium text-ink">{fmtUSD(t.costUSD)}</span>
+      </div>
+      <div
+        className="mb-2 flex h-1 w-full overflow-hidden rounded-[2px] bg-surface-2"
+        aria-hidden="true"
+        title={
+          t.subagentCostUSD > 0
+            ? `${fmtUSD(mainCost)} direct + ${fmtUSD(t.subagentCostUSD)} subagent`
+            : fmtUSD(t.costUSD)
+        }
+      >
+        <div className="h-full bg-chart" style={{ width: mainPct + '%' }} />
+        {t.subagentCostUSD > 0 && <div className="h-full bg-accent" style={{ width: subPct + '%' }} />}
       </div>
       <div
         className={
@@ -63,6 +78,11 @@ function PromptTimeline({ sessionKey }) {
     };
   }, [sessionKey]);
 
+  const maxCost = useMemo(
+    () => Math.max(...(state.turns || []).map((t) => t.costUSD), 0.01),
+    [state.turns]
+  );
+
   const noteCls = 'py-3 text-[12.5px] text-muted';
   if (state.status === 'loading') return <div className={noteCls}>Loading prompts…</div>;
   if (state.status === 'error') {
@@ -72,7 +92,7 @@ function PromptTimeline({ sessionKey }) {
   return (
     <ol className="m-0 list-none p-0">
       {state.turns.map((t, i) => (
-        <Turn key={i} t={t} />
+        <Turn key={i} t={t} maxCost={maxCost} />
       ))}
     </ol>
   );
