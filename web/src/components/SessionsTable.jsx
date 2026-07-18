@@ -80,6 +80,7 @@ function PromptTimeline({ sessionKey }) {
 
 function SessionDetail({ s }) {
   const models = Object.entries(s.models).sort((a, b) => b[1].costUSD - a[1].costUSD);
+  const maxModelCost = Math.max(...models.map(([, m]) => m.costUSD), 0.01);
   return (
     <div className="detail-inner">
       <div className="mb-2.5 text-[12.5px] text-muted">
@@ -95,6 +96,7 @@ function SessionDetail({ s }) {
             <th className="num">Cache write</th>
             <th className="num">Cache read</th>
             <th className="num">Cost</th>
+            <th className="num">Share</th>
           </tr>
         </thead>
         <tbody>
@@ -107,6 +109,17 @@ function SessionDetail({ s }) {
               <td className="num">{fmtTok(m.tokens.cacheWrite5m + m.tokens.cacheWrite1h)}</td>
               <td className="num">{fmtTok(m.tokens.cacheRead)}</td>
               <td className="num">{fmtUSD(m.costUSD)}</td>
+              <td className="num">
+                <div
+                  className="ml-auto h-[7px] w-16 overflow-hidden rounded-[3px] bg-surface-2"
+                  aria-hidden="true"
+                >
+                  <div
+                    className="h-full min-w-[2px] rounded-[3px] bg-chart"
+                    style={{ width: (m.costUSD / maxModelCost) * 100 + '%' }}
+                  />
+                </div>
+              </td>
             </tr>
           ))}
         </tbody>
